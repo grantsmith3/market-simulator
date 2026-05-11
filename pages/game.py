@@ -11,6 +11,7 @@ html("""
 <script>
 const doc = window.parent.document;
 
+// ── Spacebar play/pause ────────────────────────────────────────────────────
 doc.addEventListener('keydown', function(e) {
     if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
         e.preventDefault();
@@ -20,7 +21,8 @@ doc.addEventListener('keydown', function(e) {
     }
 });
 
-
+// ── Tab persistence ────────────────────────────────────────────────────────
+// Remember which tab was last clicked and re-click it after Streamlit rerenders.
 let activeTabIdx = 0;
 
 function getTabs() {
@@ -37,6 +39,7 @@ function restoreTab() {
     }
 }
 
+// Track user tab clicks
 doc.addEventListener('click', function(e) {
     const tab = e.target.closest('button[data-baseweb="tab"]');
     if (tab) {
@@ -46,7 +49,8 @@ doc.addEventListener('click', function(e) {
     }
 });
 
-
+// After each Streamlit rerender, restore the active tab.
+// Streamlit signals rerenders by updating the DOM — watch for it.
 const observer = new MutationObserver(function() {
     restoreTab();
 });
@@ -56,7 +60,7 @@ observer.observe(doc.body, { childList: true, subtree: true });
 st.markdown("""
 <style>
 
-
+/* ===== Sidebar ===== */
 [data-testid="stSidebar"],
 [data-testid="stSidebarContent"] {
     background-color: #0a0c10;
@@ -68,13 +72,14 @@ st.markdown("""
     color: #ffffff !important;
 }
 
-
+/* ===== Base App Background ===== */
 [data-testid="stAppViewContainer"],
 [data-testid="stHeader"],
 [data-testid="stVerticalBlock"] {
     background-color: #0a0c10;
 }
 
+/* ===== Text (TARGETED — no wildcard) ===== */
 [data-testid="stMarkdownContainer"],
 [data-testid="stText"],
 [data-testid="stCaptionContainer"],
@@ -83,10 +88,12 @@ label, p, span {
     font-family: 'Inter', -apple-system, sans-serif;
 }
 
+/* Headings */
 h1, h2, h3 {
     color: #f8fafc !important;
 }
 
+/* ===== Metric Cards ===== */
 [data-testid="metric-container"] {
     background-color: #111318;
     border: 1px solid #1e2330;
@@ -103,6 +110,7 @@ h1, h2, h3 {
     color: #94a3b8 !important;
 }
 
+/* ===== Tabs ===== */
 button[data-baseweb="tab"] {
     background-color: transparent;
     color: #94a3b8;
@@ -115,6 +123,7 @@ button[data-baseweb="tab"][aria-selected="true"] {
     border-bottom: 2px solid #3b82f6;
 }
 
+/* ===== Inputs ===== */
 input, textarea, select {
     background-color: #111318 !important;
     color: #f8fafc !important;
@@ -122,6 +131,7 @@ input, textarea, select {
     border: 1px solid #1e2330 !important;
 }
 
+/* ===== Buttons ===== */
 div.stButton button {
     background-color: #111318;
     color: #e2e8f0;
@@ -131,21 +141,25 @@ div.stButton button {
     font-size: 13px;
 }
 
+/* ===== Divider ===== */
 hr {
     border-color: #1e2330 !important;
 }
 
+/* ===== Sidebar Arrow Fix ===== */
 button[kind="header"] {
     display: flex !important;
     align-items: center;
     justify-content: center;
 }
 
+/* Force icon visible */
 button[kind="header"] svg {
     display: block !important;
     visibility: visible !important;
 }
 
+/* Hide fallback text ONLY inside toggle */
 button[kind="header"] span {
     display: none !important;
 }
@@ -179,12 +193,12 @@ MARKET_OPEN = 9 * 60 + 30
 MARKET_CLOSE = 16 * 60
 
 SPEEDS = {
-    "1x":  0.2,
-    "2x":  0.4,
-    "5x":  1.0,
-    "10x": 2.0,
-    "20x": 4.0,
-    "60x": 12.0,
+    "1x":  0.4,   # 1 tick/sec  → 0.4 ticks per 400ms frame
+    "2x":  0.8,
+    "5x":  2.0,
+    "10x": 4.0,
+    "20x": 8.0,
+    "60x": 24.0,
 }
 
 FILLER_NEWS = [
@@ -216,46 +230,48 @@ FILLER_NEWS = [
 ]
 
 EVENTS = [
+    # ── Tech positive ──
     {"msg": "AI infrastructure spending accelerates; hyperscalers raise capex guidance", "Tech": 0.07, "Energy": 0.01, "Finance": 0.02, "duration": 20},
     {"msg": "Semiconductor cycle turns; foundry utilisation hits 18-month high", "Tech": 0.06, "Energy": 0, "Finance": 0.01, "duration": 18},
     {"msg": "Cloud migration wave drives software ARR growth to record levels", "Tech": 0.05, "Energy": 0, "Finance": 0.02, "duration": 16},
     {"msg": "Tech earnings season opens with broad beats; guidance raised across board", "Tech": 0.08, "Energy": 0, "Finance": 0.02, "duration": 15},
     {"msg": "Enterprise software spending rebounds as IT budgets unfrozen", "Tech": 0.04, "Energy": 0, "Finance": 0.01, "duration": 14},
     {"msg": "Autonomous vehicle milestone achieved; sector rerated higher", "Tech": 0.05, "Energy": -0.02, "Finance": 0.01, "duration": 16},
+    # ── Tech negative ──
     {"msg": "EU antitrust regulators open sweeping probe into big tech platforms", "Tech": -0.06, "Energy": 0, "Finance": -0.01, "duration": 20},
     {"msg": "Chip export restrictions tightened; Asia supply chain disruption feared", "Tech": -0.07, "Energy": 0, "Finance": -0.01, "duration": 22},
     {"msg": "Cybersecurity incident exposes data of 200 million users; sector under pressure", "Tech": -0.06, "Energy": 0, "Finance": -0.02, "duration": 20},
     {"msg": "Tech layoffs accelerate; headcount reductions signal demand slowdown", "Tech": -0.04, "Energy": 0, "Finance": -0.01, "duration": 16},
     {"msg": "AI regulation bill advances in Congress; compliance costs seen rising sharply", "Tech": -0.05, "Energy": 0, "Finance": -0.01, "duration": 18},
     {"msg": "DRAM oversupply worsens; memory chip prices fall to multi-year lows", "Tech": -0.05, "Energy": 0, "Finance": 0, "duration": 16},
-
+    # ── Energy positive ──
     {"msg": "OPEC+ agrees surprise production cut of 1.5 million barrels per day", "Tech": -0.01, "Energy": 0.09, "Finance": 0.01, "duration": 22},
     {"msg": "Geopolitical tensions in Strait of Hormuz spike crude premium", "Tech": -0.01, "Energy": 0.08, "Finance": -0.01, "duration": 20},
     {"msg": "Natural gas supply disruption in Europe pushes LNG prices to record", "Tech": 0, "Energy": 0.07, "Finance": 0, "duration": 18},
     {"msg": "Inventory draw larger than expected; crude rallies on supply tightness", "Tech": 0, "Energy": 0.05, "Finance": 0.01, "duration": 14},
     {"msg": "Energy sector posts best quarterly earnings in three years", "Tech": 0.01, "Energy": 0.06, "Finance": 0.01, "duration": 15},
     {"msg": "Cold snap drives heating demand surge; utilities and energy rally in tandem", "Tech": 0, "Energy": 0.05, "Finance": 0, "duration": 14},
-
+    # ── Energy negative ──
     {"msg": "Global recession fears deepen; oil demand outlook cut by IEA", "Tech": -0.02, "Energy": -0.08, "Finance": -0.03, "duration": 22},
     {"msg": "OPEC+ compliance breaks down; Saudi Arabia floods market with crude", "Tech": 0, "Energy": -0.09, "Finance": -0.01, "duration": 22},
     {"msg": "Electric vehicle adoption hits inflection; long-term oil demand forecast cut", "Tech": 0.03, "Energy": -0.06, "Finance": 0, "duration": 20},
     {"msg": "US shale output hits record high; WTI slumps on supply glut", "Tech": 0, "Energy": -0.06, "Finance": 0, "duration": 18},
     {"msg": "Warm winter forecast slashes natural gas demand outlook", "Tech": 0, "Energy": -0.05, "Finance": 0, "duration": 16},
-
+    # ── Finance positive ──
     {"msg": "Fed signals end of rate-hiking cycle; financial conditions ease sharply", "Tech": 0.04, "Energy": 0.01, "Finance": 0.08, "duration": 22},
     {"msg": "Bank stress tests pass with wide capital cushions; buybacks greenlit", "Tech": 0, "Energy": 0, "Finance": 0.07, "duration": 18},
     {"msg": "M&A volumes surge as deal-making thaws after prolonged drought", "Tech": 0.02, "Energy": 0.01, "Finance": 0.06, "duration": 18},
     {"msg": "Investment banking fee revenue hits two-year high on IPO and bond issuance", "Tech": 0.01, "Energy": 0, "Finance": 0.07, "duration": 16},
     {"msg": "Consumer credit quality improves; delinquency rates fall to cycle lows", "Tech": 0, "Energy": 0, "Finance": 0.05, "duration": 14},
     {"msg": "Yield curve steepens; net interest margin expansion boosts bank outlook", "Tech": 0, "Energy": 0, "Finance": 0.06, "duration": 16},
-
+    # ── Finance negative ──
     {"msg": "Regional bank liquidity fears resurface; deposit outflows reported", "Tech": -0.02, "Energy": 0, "Finance": -0.09, "duration": 24},
     {"msg": "Fed delivers hawkish surprise; rate path re-priced aggressively higher", "Tech": -0.03, "Energy": -0.01, "Finance": -0.07, "duration": 22},
     {"msg": "Commercial real estate losses force major lender to raise emergency capital", "Tech": -0.01, "Energy": 0, "Finance": -0.08, "duration": 22},
     {"msg": "Credit card charge-off rates spike; consumer health concerns intensify", "Tech": -0.01, "Energy": 0, "Finance": -0.06, "duration": 18},
     {"msg": "Regulators propose strict new capital requirements under Basel IV revision", "Tech": -0.01, "Energy": 0, "Finance": -0.06, "duration": 20},
     {"msg": "Sovereign debt concerns reignite; spreads on peripheral bonds widen sharply", "Tech": -0.02, "Energy": -0.01, "Finance": -0.07, "duration": 20},
-
+    # ── Macro / cross-sector ──
     {"msg": "CPI prints above consensus for third consecutive month; stagflation fears grow", "Tech": -0.04, "Energy": 0.02, "Finance": -0.05, "duration": 22},
     {"msg": "Unemployment rate falls to 50-year low; soft landing narrative gains traction", "Tech": 0.03, "Energy": 0.02, "Finance": 0.04, "duration": 18},
     {"msg": "GDP growth revised sharply higher; cyclicals broadly outperform", "Tech": 0.03, "Energy": 0.03, "Finance": 0.05, "duration": 18},
@@ -502,7 +518,7 @@ def cover_short(sym, shares):
         if st.session_state.cash >= cost:
             st.session_state.cash -= cost
             basis   = st.session_state.short_basis.get(sym, price)
-            pnl     = (basis - price) * shares
+            pnl     = (basis - price) * shares  # profit when price fell
             if pnl > 0:
                 st.session_state.profitable_trades += 1
             elif pnl < 0:
@@ -567,13 +583,14 @@ def init():
         "sector_profits": {s: 0.0 for s in SECTORS},
         "sector_trades": {s: 0 for s in SECTORS},
         "objectives": [
+            # ── Tier 1: Getting Started ──
             {"id":  1, "tier": 1, "task": "Make your first trade",               "target": 1,       "type": "trade_count",    "reward": 100,   "done": False},
             {"id":  2, "tier": 1, "task": "Grow to $105,000",                    "target": 105000,  "type": "net_worth",      "reward": 150,   "done": False},
             {"id":  3, "tier": 1, "task": "Execute 5 trades",                    "target": 5,       "type": "trade_count",    "reward": 200,   "done": False},
             {"id":  4, "tier": 1, "task": "Hold 3 different stocks at once",     "target": 3,       "type": "hold_count",     "reward": 200,   "done": False},
             {"id":  5, "tier": 1, "task": "Reach $110,000 net worth",            "target": 110000,  "type": "net_worth",      "reward": 300,   "done": False},
             {"id":  6, "tier": 1, "task": "Place your first short",              "target": 1,       "type": "short_count",    "reward": 250,   "done": False},
-
+            # ── Tier 2: Building a Book ──
             {"id":  7, "tier": 2, "task": "Reach $150,000 net worth",            "target": 150000,  "type": "net_worth",      "reward": 500,   "done": False},
             {"id":  8, "tier": 2, "task": "Execute 20 trades",                   "target": 20,      "type": "trade_count",    "reward": 400,   "done": False},
             {"id":  9, "tier": 2, "task": "Hold 6 different stocks at once",     "target": 6,       "type": "hold_count",     "reward": 500,   "done": False},
@@ -581,7 +598,7 @@ def init():
             {"id": 11, "tier": 2, "task": "Profit $2,000 from Energy trades",    "target": 2000,    "type": "sector_profit",  "sector": "Energy",  "reward": 600,   "done": False},
             {"id": 12, "tier": 2, "task": "Reach $200,000 net worth",            "target": 200000,  "type": "net_worth",      "reward": 750,   "done": False},
             {"id": 13, "tier": 2, "task": "Cover 5 short positions",             "target": 5,       "type": "cover_count",    "reward": 500,   "done": False},
-
+            # ── Tier 3: Serious Trader ──
             {"id": 14, "tier": 3, "task": "Reach $500,000 net worth",            "target": 500000,  "type": "net_worth",      "reward": 1500,  "done": False},
             {"id": 15, "tier": 3, "task": "Execute 50 trades",                   "target": 50,      "type": "trade_count",    "reward": 1000,  "done": False},
             {"id": 16, "tier": 3, "task": "Hold 8 different stocks at once",     "target": 8,       "type": "hold_count",     "reward": 1200,  "done": False},
@@ -589,7 +606,7 @@ def init():
             {"id": 18, "tier": 3, "task": "Profit $20,000 from Finance trades",  "target": 20000,   "type": "sector_profit",  "sector": "Finance", "reward": 1500,  "done": False},
             {"id": 19, "tier": 3, "task": "Execute 10 short positions",          "target": 10,      "type": "short_count",    "reward": 1200,  "done": False},
             {"id": 20, "tier": 3, "task": "Reach $1,000,000 net worth",          "target": 1000000, "type": "net_worth",      "reward": 3000,  "done": False},
-
+            # ── Tier 4: Market Operator ──
             {"id": 21, "tier": 4, "task": "Reach $2,500,000 net worth",          "target": 2500000, "type": "net_worth",      "reward": 6000,  "done": False},
             {"id": 22, "tier": 4, "task": "Execute 100 trades",                  "target": 100,     "type": "trade_count",    "reward": 4000,  "done": False},
             {"id": 23, "tier": 4, "task": "Profit $100,000 from Tech trades",    "target": 100000,  "type": "sector_profit",  "sector": "Tech",    "reward": 5000,  "done": False},
@@ -597,6 +614,7 @@ def init():
             {"id": 25, "tier": 4, "task": "Profit $100,000 from Finance trades", "target": 100000,  "type": "sector_profit",  "sector": "Finance", "reward": 5000,  "done": False},
             {"id": 26, "tier": 4, "task": "Execute 25 short positions",          "target": 25,      "type": "short_count",    "reward": 5000,  "done": False},
             {"id": 27, "tier": 4, "task": "Reach $5,000,000 net worth",          "target": 5000000, "type": "net_worth",      "reward": 10000, "done": False},
+            # ── Tier 5: Elite ──
             {"id": 28, "tier": 5, "task": "Reach $10,000,000 net worth",         "target": 10000000,"type": "net_worth",      "reward": 25000, "done": False},
             {"id": 29, "tier": 5, "task": "Execute 250 trades",                  "target": 250,     "type": "trade_count",    "reward": 15000, "done": False},
             {"id": 30, "tier": 5, "task": "Profit $500,000 in a single sector",  "target": 500000,  "type": "any_sector_profit","reward": 20000, "done": False},
@@ -610,9 +628,12 @@ def init():
         if k not in st.session_state:
             st.session_state[k] = v
 
+    # Migration: if any stored objective is missing "tier", replace the whole list
+    # with the current definition so new fields are present.
     if st.session_state.objectives and "tier" not in st.session_state.objectives[0]:
         st.session_state.objectives = defaults["objectives"]
 
+    # Migration: add any other missing keys added in later versions
     migration_defaults = {
         "cost_basis": {}, "short_basis": {}, "net_worth_history": [],
         "watchlist": [], "price_alerts": [], "auto_pause_events": True,
@@ -635,6 +656,7 @@ def buy_stock(sym, shares):
         prev_shares = st.session_state.portfolio.get(sym, 0)
         prev_basis  = st.session_state.cost_basis.get(sym, 0.0)
         new_shares  = prev_shares + shares
+        # weighted average cost basis
         st.session_state.cost_basis[sym] = (prev_basis * prev_shares + price * shares) / new_shares
         st.session_state.portfolio[sym]  = new_shares
         st.session_state.total_trades += 1
@@ -642,6 +664,9 @@ def buy_stock(sym, shares):
             "action": "Buy", "sym": sym, "shares": shares, "price": price
         })
 
+
+# FIX 2: sell_stock had a double-if that could track profits without paying out cash.
+# Merged into a single guard so sector_profits, total_trades, and cash update atomically.
 def sell_stock(sym, shares):
     if st.session_state.portfolio.get(sym, 0) >= shares:
         price  = get_price(sym)
@@ -657,7 +682,7 @@ def sell_stock(sym, shares):
         if st.session_state.portfolio[sym] == 0:
             del st.session_state.portfolio[sym]
             st.session_state.cost_basis.pop(sym, None)
-        st.session_state.sector_profits[sector] += pnl
+        st.session_state.sector_profits[sector] += pnl   # actual profit, not gross
         st.session_state.sector_trades[sector]  += 1
         st.session_state.total_trades += 1
         st.session_state.trade_history.insert(0, {
@@ -689,6 +714,9 @@ def portfolio_value():
     )
     return st.session_state.cash + long_val - short_liab
 
+
+# FIX 3: update_rank was defined twice; second definition silently overwrote the first.
+# Kept one copy only.
 def update_rank():
     ranks = ["Trainee","Analyst","Associate","Senior Associate","Vice President",
              "Director","Managing Director","Partner","Market Maker","Legend"]
@@ -707,6 +735,8 @@ def complete_objective(obj):
             update_rank()
 
 
+# FIX 5: removed the redundant inner check_objectives() from tick() and the separate
+# check_game_logic() call. One unified check_objectives() handles all objective types.
 def check_objectives():
     pv = portfolio_value()
     st.session_state.peak_net_worth = max(st.session_state.peak_net_worth, pv)
@@ -807,6 +837,9 @@ def tick():
             total_log_return = gbm_return + drift_contribution + reversion
             new_price = gapped_price * np.exp(total_log_return)
             s["prices"].append(max(0.01, round(float(new_price), 4)))
+            # Cap price history to last 2000 ticks
+            if len(s["prices"]) > 2000:
+                s["prices"] = s["prices"][-2000:]
 
         if random.random() < 0.02:
             st.session_state.news.insert(0, random.choice(FILLER_NEWS))
@@ -821,32 +854,46 @@ def tick():
             if st.session_state.company_ticks_left == 0:
                 st.session_state.company_event = None
 
-        for sector, tickers in SECTORS.items():
-            vals = []
-            for sym in tickers:
-                prices = st.session_state.stocks[sym]["prices"]
-                start  = prices[0]
-                vals.append((prices[-1] - start) / start * 100)
-            st.session_state.sector_history[sector].append(sum(vals) / len(vals))
+        if st.session_state.minute % 5 == 0:
+            for sector, tickers in SECTORS.items():
+                vals = [
+                    (st.session_state.stocks[sym]["prices"][-1] - st.session_state.stocks[sym]["prices"][0])
+                    / st.session_state.stocks[sym]["prices"][0] * 100
+                    for sym in tickers
+                ]
+                st.session_state.sector_history[sector].append(sum(vals) / len(vals))
+            # Cap sector history
+            for sector in SECTORS:
+                if len(st.session_state.sector_history[sector]) > 2000:
+                    st.session_state.sector_history[sector] = st.session_state.sector_history[sector][-2000:]
 
-        pv_now = portfolio_value()
-        st.session_state.net_worth_history.append(pv_now)
+        # Cap news feed
+        if len(st.session_state.news) > 100:
+            st.session_state.news = st.session_state.news[:100]
 
+        # Auto-clear banner after 30 ticks
         if st.session_state.banner_ticks > 0:
             st.session_state.banner_ticks -= 1
             if st.session_state.banner_ticks == 0:
                 st.session_state.banner = None
 
-        if pv_now < 10000 and not st.session_state.bankrupt:
-            st.session_state.bankrupt = True
-            st.session_state.clock_paused = True
-            st.session_state.banner = "💀 MARGIN CALL — You have been liquidated."
-            st.session_state.news.insert(0, "💀 MARGIN CALL: Net worth fell below $10,000. Game over.")
+        # Sample net worth and check margin every 10 ticks — not every tick
+        if st.session_state.minute % 10 == 0:
+            pv_now = portfolio_value()
+            st.session_state.net_worth_history.append(pv_now)
+            if len(st.session_state.net_worth_history) > 2000:
+                st.session_state.net_worth_history = st.session_state.net_worth_history[-2000:]
+            if pv_now < 10000 and not st.session_state.bankrupt:
+                st.session_state.bankrupt = True
+                st.session_state.clock_paused = True
+                st.session_state.banner = "💀 MARGIN CALL — You have been liquidated."
+                st.session_state.news.insert(0, "💀 MARGIN CALL: Net worth fell below $10,000. Game over.")
 
+    # Check objectives once per frame, not per tick
     check_objectives()
 
 
-st_autorefresh(interval=200, key="auto")
+st_autorefresh(interval=400, key="auto")
 if not st.session_state.clock_paused and not st.session_state.bankrupt:
     tick()
 
@@ -970,6 +1017,7 @@ with tabs[1]:
         m4.metric("Low", f"${min(prices):.2f}")
 
         speed_val = SPEEDS[st.session_state.speed]
+        # At 200ms interval, 5 frames/sec. Window = last N ticks visible at current speed.
         window = max(60, min(len(prices), int(60 * speed_val * 5)))
         prices_view = prices[-window:]
 
@@ -1043,10 +1091,12 @@ with tabs[2]:
     m3.metric("Short Liab.", f"${short_liab:,.2f}")
     m4.metric("Total P&L",   f"${pnl:+,.2f}")
 
+    # Net worth chart
     if len(st.session_state.net_worth_history) > 1:
         nwh = st.session_state.net_worth_history
         nw_color = "#22c55e" if nwh[-1] >= nwh[0] else "#ef4444"
         fill_color = "rgba(34,197,94,0.06)" if nw_color == "#22c55e" else "rgba(239,68,68,0.06)"
+        # Pad y-range by 5% so the line doesn't hug the edges
         y_min = min(nwh)
         y_max = max(nwh)
         y_pad = max((y_max - y_min) * 0.05, 50)
@@ -1105,7 +1155,7 @@ with tabs[2]:
             p     = get_price(sym)
             liab  = p * sh
             basis = st.session_state.short_basis.get(sym, p)
-            pos_pnl = (basis - p) * sh
+            pos_pnl = (basis - p) * sh   # profit when price falls
             pos_pct = (basis - p) / basis * 100 if basis else 0
             color   = "#22c55e" if pos_pnl >= 0 else "#ef4444"
             grid2[i % 3].markdown(f"""
@@ -1194,6 +1244,7 @@ with tabs[4]:
     total             = st.session_state.total_trades
     win_rate          = (st.session_state.profitable_trades / max(1, st.session_state.profitable_trades + st.session_state.loss_trades)) * 100
 
+    # ── Header ─────────────────────────────────────────────────────────────────
     st.markdown(f"""
     <div style='background:#111318;border:1px solid #1e2330;border-radius:12px;padding:20px;margin-bottom:20px;'>
         <div style='font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:1px;'>Current Rank</div>
@@ -1203,7 +1254,7 @@ with tabs[4]:
     """, unsafe_allow_html=True)
     st.progress(progress)
 
-
+    # ── Key Stats ──────────────────────────────────────────────────────────────
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("<div style='font-size:11px;color:#475569;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;'>Performance</div>", unsafe_allow_html=True)
     k1, k2, k3, k4, k5, k6 = st.columns(6)
@@ -1228,6 +1279,7 @@ with tabs[4]:
             <div style='font-size:12px;color:#475569;margin-top:4px;'>{trades} sells</div>
         </div>""", unsafe_allow_html=True)
 
+    # ── Rank Progression ──────────────────────────────────────────────────────
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("<div style='font-size:11px;color:#475569;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;'>Rank Progression</div>", unsafe_allow_html=True)
     rank_cols = st.columns(len(RANKS))
@@ -1244,7 +1296,7 @@ with tabs[4]:
             <div style='font-size:9px;color:{text};margin-top:2px;line-height:1.2;'>{rname}</div>
         </div>""", unsafe_allow_html=True)
 
-
+    # ── Objectives by Tier ────────────────────────────────────────────────────
     st.markdown("<br>", unsafe_allow_html=True)
     TIER_NAMES = {1: "Tier 1 — Getting Started", 2: "Tier 2 — Building a Book",
                   3: "Tier 3 — Serious Trader",  4: "Tier 4 — Market Operator",
